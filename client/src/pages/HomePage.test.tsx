@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { jsonResponse, stubApi } from "../test/api";
-import type { Task } from "../types";
+import type { Note, Task } from "../types";
 import { HomePage } from "./HomePage";
 
 function todayValue() {
@@ -72,7 +72,30 @@ describe("HomePage tasks", () => {
 
     expect(headings).toEqual(["Around now", "Today’s tasks", "Recent notes"]);
     expect(screen.getByText("Time blocks are unavailable.")).toBeInTheDocument();
-    expect(screen.getByText("Notes are unavailable.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Add your first note/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the four most recently edited notes", async () => {
+    const notes: Note[] = Array.from({ length: 5 }, (_, index) => ({
+      id: `00000000-0000-0000-0000-00000000000${index}`,
+      title: `Note ${index + 1}`,
+      markdown: "",
+      taskId: null,
+      updatedAt: `2026-09-01T0${index}:00:00Z`,
+    }));
+    stubApi({
+      "GET /notes": () => jsonResponse(notes),
+    });
+
+    render(<HomePage />);
+
+    expect(await screen.findByText("Note 5")).toBeInTheDocument();
+    expect(screen.getByText("Note 4")).toBeInTheDocument();
+    expect(screen.getByText("Note 3")).toBeInTheDocument();
+    expect(screen.getByText("Note 2")).toBeInTheDocument();
+    expect(screen.queryByText("Note 1")).not.toBeInTheDocument();
   });
 
   it("shows today’s tasks without requesting the fallback list", async () => {

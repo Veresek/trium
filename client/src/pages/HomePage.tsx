@@ -1,8 +1,11 @@
 import { useState } from "react";
 
 import { EmptyCta } from "../components/EmptyCta";
+import { NoteCard } from "../components/NoteCard";
+import { NoteForm } from "../components/NoteForm";
 import { TaskForm } from "../components/TaskForm";
 import { TaskItem } from "../components/TaskItem";
+import { useNotes } from "../hooks/useNotes";
 import { useTasks } from "../hooks/useTasks";
 
 const hours = ["- 1h", "Now", "+ 1h", "+ 2h", "+ 3h"];
@@ -49,6 +52,14 @@ export function HomePage() {
     updateTask,
   } = useTasks(dateValue, { fallbackToAll: true });
   const [creating, setCreating] = useState(false);
+  const {
+    notes,
+    loading: notesLoading,
+    error: notesError,
+    retry: retryNotes,
+    createNote,
+  } = useNotes();
+  const [creatingNote, setCreatingNote] = useState(false);
   const dateAndTime = new Intl.DateTimeFormat("en", {
     weekday: "long",
     month: "long",
@@ -178,14 +189,72 @@ export function HomePage() {
           )}
         </section>
 
-        <section className="lg:col-span-2 lg:row-start-2">
+        <section
+          aria-busy={notesLoading}
+          className="lg:col-span-2 lg:row-start-2"
+        >
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-medium">Recent notes</h2>
-            <span className="text-xs text-ink-faint">Unavailable</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-ink-faint">
+                {notes.length} {notes.length === 1 ? "note" : "notes"}
+              </span>
+              {notes.length > 0 ? (
+                <button
+                  className="text-xs font-medium text-moss hover:text-moss-hover"
+                  onClick={() => setCreatingNote(true)}
+                  type="button"
+                >
+                  Add note
+                </button>
+              ) : null}
+            </div>
           </div>
-          <div className="rounded-lg border border-dashed border-line bg-paper-raised p-8 text-center text-sm text-ink-soft">
-            Notes are unavailable.
-          </div>
+          {notesError ? (
+            <div
+              className="mb-3 flex items-center justify-between gap-4 rounded-md border border-rust/40 bg-paper-raised p-4 text-sm text-rust"
+              role="alert"
+            >
+              <span>{notesError}</span>
+              <button
+                className="rounded-md border border-rust/40 px-3 py-1.5"
+                onClick={() => void retryNotes()}
+                type="button"
+              >
+                Retry notes
+              </button>
+            </div>
+          ) : null}
+          {creatingNote ? (
+            <NoteForm
+              onCancel={() => setCreatingNote(false)}
+              onSubmit={async (payload) => {
+                await createNote(payload);
+                setCreatingNote(false);
+              }}
+              submitLabel="Create note"
+            />
+          ) : null}
+          {notesLoading ? (
+            <p className="text-sm text-ink-soft">Loading recent notes…</p>
+          ) : notes.length === 0 && !creatingNote ? (
+            <EmptyCta
+              description="Keep an idea close to the rest of your day."
+              onClick={() => setCreatingNote(true)}
+              title="Add your first note"
+            />
+          ) : (
+            <div
+              className={[
+                "grid gap-4 md:grid-cols-2",
+                creatingNote ? "mt-4" : "",
+              ].join(" ")}
+            >
+              {notes.slice(0, 4).map((note) => (
+                <NoteCard compact key={note.id} note={note} />
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </div>

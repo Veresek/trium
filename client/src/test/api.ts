@@ -55,6 +55,10 @@ export function stubApi(
         return jsonResponse([]);
       }
 
+      if (path === "/notes" && method === "GET") {
+        return jsonResponse([]);
+      }
+
       throw new Error(`Unhandled fetch: ${key}`);
     }),
   );

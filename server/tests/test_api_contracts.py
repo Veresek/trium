@@ -157,5 +157,5 @@ def test_resource_requests_accept_camel_case(
 
     response = client.post(path, json=payload)
 
-    expected_status = 404 if path == "/api/tasks" else 501
+    expected_status = 501 if path == "/api/blocks" else 404
     assert response.status_code == expected_status
