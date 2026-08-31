@@ -1,0 +1,80 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: trium
+      POSTGRES_USER: trium
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trium -d trium"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  server:
+    build:
+      context: ./server
+    command:
+      - sh
+      - -c
+      - >-
+        python scripts/migrate.py &&
+        exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+        --proxy-headers --forwarded-allow-ips=*
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+psycopg://trium:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/trium
+      INSTANCE_CODE: ${INSTANCE_CODE:?Set INSTANCE_CODE}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY}
+      TIMEZONE: ${TIMEZONE:-Europe/Warsaw}
+      CLIENT_ORIGIN: https://${DOMAIN:?Set DOMAIN}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    init: true
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.prod
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN}
+    depends_on:
+      server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:2015/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    restart: unless-stopped
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_config:
+  caddy_data:
+  postgres_data:
