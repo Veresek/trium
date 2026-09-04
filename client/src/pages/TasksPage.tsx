@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { Dialog } from "../components/Dialog";
 import { EmptyCta } from "../components/EmptyCta";
 import { TaskForm } from "../components/TaskForm";
 import { TaskItem } from "../components/TaskItem";
@@ -17,6 +18,7 @@ export function TasksPage() {
   } = useTasks();
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const editing = tasks.find((task) => task.id === editingId);
 
   return (
     <section className="mx-auto w-full max-w-4xl px-4 py-8 md:px-8 md:py-12">
@@ -57,7 +59,7 @@ export function TasksPage() {
       ) : null}
 
       {creating ? (
-        <div className="mt-6">
+        <Dialog onClose={() => setCreating(false)} title="Add task">
           <TaskForm
             onCancel={() => setCreating(false)}
             onSubmit={async (payload) => {
@@ -66,14 +68,28 @@ export function TasksPage() {
             }}
             submitLabel="Create task"
           />
-        </div>
+        </Dialog>
+      ) : null}
+
+      {editing ? (
+        <Dialog onClose={() => setEditingId(null)} title="Edit task">
+          <TaskForm
+            initial={editing}
+            onCancel={() => setEditingId(null)}
+            onSubmit={async (payload) => {
+              await updateTask(editing.id, payload);
+              setEditingId(null);
+            }}
+            submitLabel="Save changes"
+          />
+        </Dialog>
       ) : null}
 
       {loading ? (
         <p className="mt-8 text-sm text-ink-soft" role="status">
           Loading tasks…
         </p>
-      ) : tasks.length === 0 && !creating ? (
+      ) : tasks.length === 0 ? (
         <div className="mt-8">
           <EmptyCta
             description="Capture it here, with or without a date."
@@ -86,31 +102,18 @@ export function TasksPage() {
           <p className="text-xs text-ink-faint">
             {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
           </p>
-          {tasks.map((task) =>
-            editingId === task.id ? (
-              <TaskForm
-                initial={task}
-                key={task.id}
-                onCancel={() => setEditingId(null)}
-                onSubmit={async (payload) => {
-                  await updateTask(task.id, payload);
-                  setEditingId(null);
-                }}
-                submitLabel="Save changes"
-              />
-            ) : (
-              <TaskItem
-                key={task.id}
-                onDelete={() => deleteTask(task.id)}
-                onEdit={() => {
-                  setCreating(false);
-                  setEditingId(task.id);
-                }}
-                onToggle={() => updateTask(task.id, { done: !task.done })}
-                task={task}
-              />
-            ),
-          )}
+          {tasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              onDelete={() => deleteTask(task.id)}
+              onEdit={() => {
+                setCreating(false);
+                setEditingId(task.id);
+              }}
+              onToggle={() => updateTask(task.id, { done: !task.done })}
+              task={task}
+            />
+          ))}
         </div>
       )}
     </section>

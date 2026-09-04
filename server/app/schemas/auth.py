@@ -15,7 +15,7 @@ class RegisterRequest(ApiModel):
 
 class VerifyRequest(ApiModel):
     email: EmailStr
-    instance_code: str
+    instance_code: str = Field(min_length=1, max_length=256)
 
 
 class ResetRequest(VerifyRequest):

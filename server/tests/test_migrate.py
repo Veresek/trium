@@ -3,7 +3,9 @@ from pathlib import Path
 
 from alembic import command
 import pytest
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import CheckConstraint, Column, MetaData, Table, Time, create_engine, inspect, text
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.schema import AddConstraint
 
 from scripts.migrate import (
     BASELINE_REVISION,
@@ -75,9 +77,27 @@ def test_migrate_builds_an_empty_database(tmp_path: Path) -> None:
 
     migrate(url)
 
-    assert current_revision(url) == "20260831_0002"
+    assert current_revision(url) == "20260902_0005"
     assert "session_version" in column_names(url, "users")
     assert "session_version" in column_names(url, "refresh_tokens")
+    assert "updated_at" in column_names(url, "tasks")
+    assert "updated_at" in column_names(url, "time_blocks")
+    assert column_nullable(url, "tasks", "updated_at") is False
+    assert column_nullable(url, "time_blocks", "updated_at") is False
+    engine = create_engine(url)
+    try:
+        inspector = inspect(engine)
+        task_indexes = {index["name"] for index in inspector.get_indexes("tasks")}
+        note_indexes = {index["name"] for index in inspector.get_indexes("notes")}
+        block_indexes = {
+            index["name"] for index in inspector.get_indexes("time_blocks")
+        }
+        assert "ix_tasks_user_id_date" in task_indexes
+        assert "ix_tasks_time_block_id" in task_indexes
+        assert "ix_notes_task_id" in note_indexes
+        assert "ix_time_blocks_user_id_date" in block_indexes
+    finally:
+        engine.dispose()
 
 
 def test_migrate_stamps_legacy_schema_and_preserves_data(tmp_path: Path) -> None:
@@ -109,8 +129,9 @@ def test_migrate_stamps_legacy_schema_and_preserves_data(tmp_path: Path) -> None
 
     migrate(url)
 
-    assert current_revision(url) == "20260831_0002"
+    assert current_revision(url) == "20260902_0005"
     assert column_nullable(url, "tasks", "date") is True
+    assert column_nullable(url, "tasks", "updated_at") is False
     engine = create_engine(url)
     try:
         with engine.connect() as connection:
@@ -150,3 +171,26 @@ def test_migrate_rejects_unrecognized_unversioned_schema(
         migrate(url)
 
     assert "alembic_version" not in table_names(url)
+
+
+@pytest.mark.parametrize(
+    "sql",
+    ['"end" > "start"', '"start" <> "end"'],
+)
+def test_time_block_check_constraints_quote_postgres_reserved_columns(
+    sql: str,
+) -> None:
+    table = Table(
+        "time_blocks",
+        MetaData(),
+        Column("start", Time()),
+        Column("end", Time()),
+    )
+    constraint = CheckConstraint(sql, name="ck_time_blocks_test")
+    table.append_constraint(constraint)
+    compiled = str(AddConstraint(constraint).compile(dialect=postgresql.dialect()))
+
+    assert "CHECK (end " not in compiled
+    assert "CHECK (start " not in compiled
+    assert '"end"' in compiled
+    assert '"start"' in compiled

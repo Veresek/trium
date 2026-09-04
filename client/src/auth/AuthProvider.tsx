@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -61,51 +62,61 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, []);
 
+  const login = useCallback(async (email: string, password: string) => {
+    const next = await authApi.login({ email, password });
+    sessionChange.current += 1;
+    setUser(next);
+    return next;
+  }, []);
+
+  const register = useCallback(async (email: string, password: string) => {
+    const next = await authApi.register({ email, password });
+    sessionChange.current += 1;
+    if (next.verifiedAt) {
+      setUser(next);
+    }
+    return next;
+  }, []);
+
+  const verify = useCallback(async (email: string, instanceCode: string) => {
+    const next = await authApi.verify({ email, instanceCode });
+    sessionChange.current += 1;
+    setUser(next);
+    return next;
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+      sessionChange.current += 1;
+      setUser(null);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        sessionChange.current += 1;
+        setUser(null);
+        return;
+      }
+      throw error;
+    }
+  }, []);
+
+  const deleteAccount = useCallback(async () => {
+    await userApi.remove();
+    sessionChange.current += 1;
+    setUser(null);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       loading,
-      login: async (email, password) => {
-        const next = await authApi.login({ email, password });
-        sessionChange.current += 1;
-        setUser(next);
-        return next;
-      },
-      register: async (email, password) => {
-        const next = await authApi.register({ email, password });
-        sessionChange.current += 1;
-        if (next.verifiedAt) {
-          setUser(next);
-        }
-        return next;
-      },
-      verify: async (email, instanceCode) => {
-        const next = await authApi.verify({ email, instanceCode });
-        sessionChange.current += 1;
-        setUser(next);
-        return next;
-      },
-      logout: async () => {
-        try {
-          await authApi.logout();
-          sessionChange.current += 1;
-          setUser(null);
-        } catch (error) {
-          if (error instanceof ApiError && error.status === 401) {
-            sessionChange.current += 1;
-            setUser(null);
-            return;
-          }
-          throw error;
-        }
-      },
-      deleteAccount: async () => {
-        await userApi.remove();
-        sessionChange.current += 1;
-        setUser(null);
-      },
+      login,
+      register,
+      verify,
+      logout,
+      deleteAccount,
     }),
-    [user, loading],
+    [user, loading, login, register, verify, logout, deleteAccount],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

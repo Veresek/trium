@@ -24,6 +24,7 @@ describe("ResetPage", () => {
     });
     renderWithRouter(<App />, { route: "/reset" });
 
+    await screen.findByRole("heading", { name: "Reset your password" });
     fillResetForm();
     fireEvent.click(screen.getByRole("button", { name: "Reset password" }));
 
@@ -39,10 +40,9 @@ describe("ResetPage", () => {
     });
     renderWithRouter(<App />, { route: "/reset" });
 
-    expect(screen.getByRole("link", { name: "Back to login" })).toHaveAttribute(
-      "href",
-      "/login",
-    );
+    expect(
+      await screen.findByRole("link", { name: "Back to login" }),
+    ).toHaveAttribute("href", "/login");
     expect(screen.getByLabelText("New password")).toHaveAttribute(
       "autocomplete",
       "new-password",
@@ -55,12 +55,13 @@ describe("ResetPage", () => {
     );
   });
 
-  it("shows a readable pending state", () => {
+  it("shows a readable pending state", async () => {
     stubApi({
       "POST /auth/reset": () => new Promise<Response>(() => undefined),
     });
     renderWithRouter(<App />, { route: "/reset" });
 
+    await screen.findByRole("heading", { name: "Reset your password" });
     fillResetForm();
     fireEvent.click(screen.getByRole("button", { name: "Reset password" }));
 

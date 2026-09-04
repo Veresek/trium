@@ -59,14 +59,24 @@ export async function apiRequest<T>(
   init?: ApiRequestOptions,
 ): Promise<T> {
   const { skipRefresh = false, ...requestInit } = init ?? {};
-  const response = await fetch(`${API_ROOT}${path}`, {
-    ...requestInit,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...requestInit.headers,
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_ROOT}${path}`, {
+      ...requestInit,
+      credentials: "include",
+      headers: {
+        ...(requestInit.body != null
+          ? { "Content-Type": "application/json" }
+          : {}),
+        ...requestInit.headers,
+      },
+    });
+  } catch {
+    throw new ApiError(
+      "The network is unavailable. Check your connection.",
+      0,
+    );
+  }
 
   if (response.status === 401 && !skipRefresh && !path.startsWith("/auth/")) {
     try {

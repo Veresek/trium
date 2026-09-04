@@ -1,0 +1,6 @@
+target-version = "py313"
+
+[lint.per-file-ignores]
+"app/models/*.py" = ["F821"]
+"migrations/env.py" = ["F401"]
+"scripts/*.py" = ["E402"]

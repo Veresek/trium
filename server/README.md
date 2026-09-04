@@ -2,25 +2,31 @@
 
 FastAPI application that owns authentication and all user data.
 
-Auth and Tasks are implemented. Time blocks and Notes remain authenticated
-scaffolds: collection reads return empty lists and mutations return HTTP 501.
+Auth, Tasks, time blocks (including recurrence expansion on read), and Notes are
+implemented. Sessions last until password reset, logout, or account deletion.
+Auth rate limiting is in-memory per process; a single API worker is assumed.
 
 Run from this directory after starting PostgreSQL and configuring
 `DATABASE_URL`:
 
 ```bash
 python -m venv .venv
-.venv/Scripts/pip install -r requirements-dev.txt
-.venv/Scripts/python scripts/migrate.py
-uvicorn app.main:app --reload
+.venv/bin/pip install -r requirements-dev.txt          # POSIX
+.venv/Scripts/pip install -r requirements-dev.txt     # Windows
+.venv/bin/python scripts/migrate.py
+.venv/bin/uvicorn app.main:app --reload
 ```
 
 Health: <http://localhost:8000/api/health>  
 OpenAPI: <http://localhost:8000/docs>
 
 ```bash
-.venv/Scripts/python -m pytest
+.venv/bin/python -m pytest          # POSIX
+.venv/Scripts/python -m pytest      # Windows
 ```
+
+Revoked refresh-token rows left behind by rotation can be cleaned with
+`python scripts/purge_revoked_tokens.py`. Active sessions are not touched.
 
 ## Migrations
 

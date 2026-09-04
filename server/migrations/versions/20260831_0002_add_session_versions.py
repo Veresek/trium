@@ -44,5 +44,11 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    with op.batch_alter_table("tasks") as batch_op:
+        batch_op.alter_column(
+            "date",
+            existing_type=sa.Date(),
+            nullable=False,
+        )
     op.drop_column("refresh_tokens", "session_version")
     op.drop_column("users", "session_version")

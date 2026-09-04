@@ -12,7 +12,7 @@ describe("VerifyPage", () => {
     });
     renderWithRouter(<App />, { route: "/verify" });
 
-    fireEvent.change(screen.getByLabelText("Email"), {
+    fireEvent.change(await screen.findByLabelText("Email"), {
       target: { value: "ada@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Instance code"), {
@@ -22,7 +22,7 @@ describe("VerifyPage", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: /Good (morning|afternoon|evening)\./,
+        name: /Good (morning|afternoon|evening|night)\./,
       }),
     ).toBeInTheDocument();
   });
@@ -34,10 +34,9 @@ describe("VerifyPage", () => {
     });
     renderWithRouter(<App />, { route: "/verify" });
 
-    expect(screen.getByRole("link", { name: "Back to login" })).toHaveAttribute(
-      "href",
-      "/login",
-    );
+    expect(
+      await screen.findByRole("link", { name: "Back to login" }),
+    ).toHaveAttribute("href", "/login");
     expect(screen.getByLabelText("Email")).toHaveAttribute(
       "autocomplete",
       "email",
@@ -61,7 +60,7 @@ describe("VerifyPage", () => {
     });
     renderWithRouter(<App />, { route: "/verify" });
 
-    fireEvent.change(screen.getByLabelText("Email"), {
+    fireEvent.change(await screen.findByLabelText("Email"), {
       target: { value: "ada@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Instance code"), {

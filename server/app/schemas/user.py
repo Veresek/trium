@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime
 
+from pydantic import EmailStr
+
 from app.schemas.base import ApiModel, ApiReadModel
 
 
@@ -12,4 +14,4 @@ class UserRead(ApiReadModel):
 
 
 class UserUpdate(ApiModel):
-    email: str
+    email: EmailStr

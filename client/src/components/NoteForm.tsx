@@ -43,15 +43,11 @@ export function NoteForm({
   }
 
   return (
-    <form
-      className="rounded-lg border border-line bg-paper-raised p-4"
-      onSubmit={handleSubmit}
-    >
+    <form onSubmit={handleSubmit}>
       <label className="block text-sm font-medium text-ink" htmlFor="note-title">
         Title
       </label>
       <input
-        autoFocus
         className="mt-1 w-full rounded-md border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-lichen"
         id="note-title"
         maxLength={255}

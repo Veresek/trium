@@ -23,7 +23,7 @@ As of 29 August 2026. MVP: **end of September 2026**, after hours, solo, budget 
 
 Pin a task to a block — **later in MVP**, not in the task week. An MVP block does not contain a task list inside. A note on a task — only if there is time; it does not block “done”.
 
-**Ready to put on the VPS** when you can: create an account, verify / reset the password with the instance code, walk through Home in the morning (today’s tasks + block preview + recent notes), lay out the day in Calendar, open all tasks and the notes collection.
+**Ready to put on the VPS** when you can: create an account, verify / reset the password with the instance code, walk through Home in the morning (today’s tasks + block preview + recent notes), lay out the week in Calendar, open all tasks and the notes collection.
 
 Product success (separate from deploy): ≥ 20 days of September with a plan in Trium.
 
@@ -88,7 +88,7 @@ Task        id, user_id, title, description, done,
             order, created_at
 TimeBlock   id, user_id, title, description,
             date           — one-off day OR series anchor
-            start, end     — times of day
+            start, end     — times of day; end < start continues into the next day
             recurrence     — none | daily | weekly | weekdays
 Note        id, user_id, title, markdown, updated_at
             (no date)

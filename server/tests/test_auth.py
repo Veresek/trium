@@ -339,3 +339,51 @@ def test_sensitive_auth_endpoints_are_rate_limited(
 
     assert limited.status_code == 429
     assert limited.json()["detail"] == RATE_LIMITED
+
+
+def test_register_rejects_a_password_longer_than_bcrypt_allows(
+    client: TestClient,
+) -> None:
+    response = register(client, password="a1" + ("x" * 71))
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == PASSWORD_HINT
+
+
+def test_refresh_can_be_repeated_without_ending_the_session(
+    client: TestClient,
+) -> None:
+    register_verified(client)
+
+    for _ in range(3):
+        assert client.post("/api/auth/refresh").status_code == 204
+        assert client.get("/api/users/me").status_code == 200
+
+
+def test_login_does_not_revoke_an_existing_session(client: TestClient) -> None:
+    register_verified(client)
+    first_refresh = client.cookies.get("refresh_token")
+    assert first_refresh
+
+    other = TestClient(app)
+    assert login(other).status_code == 200
+
+    first = TestClient(app)
+    first.cookies.set("refresh_token", first_refresh)
+    assert first.post("/api/auth/refresh").status_code == 204
+    assert first.get("/api/users/me").status_code == 200
+
+
+def test_refresh_is_rate_limited(client: TestClient) -> None:
+    register_verified(client)
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        auth_rate_limit_enabled=True,
+        auth_rate_limit_requests=1,
+        auth_rate_limit_window_seconds=60,
+    )
+
+    assert client.post("/api/auth/refresh").status_code == 204
+    limited = client.post("/api/auth/refresh")
+
+    assert limited.status_code == 429
+    assert limited.json()["detail"] == RATE_LIMITED

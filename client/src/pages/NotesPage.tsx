@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { Dialog } from "../components/Dialog";
 import { EmptyCta } from "../components/EmptyCta";
 import { NoteCard } from "../components/NoteCard";
 import { NoteForm } from "../components/NoteForm";
@@ -17,6 +18,7 @@ export function NotesPage() {
   } = useNotes();
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const editing = notes.find((note) => note.id === editingId);
 
   return (
     <section className="mx-auto w-full max-w-5xl px-4 py-8 md:px-8 md:py-12">
@@ -59,7 +61,7 @@ export function NotesPage() {
       ) : null}
 
       {creating ? (
-        <div className="mt-6">
+        <Dialog onClose={() => setCreating(false)} title="Add note">
           <NoteForm
             onCancel={() => setCreating(false)}
             onSubmit={async (payload) => {
@@ -68,14 +70,28 @@ export function NotesPage() {
             }}
             submitLabel="Create note"
           />
-        </div>
+        </Dialog>
+      ) : null}
+
+      {editing ? (
+        <Dialog onClose={() => setEditingId(null)} title="Edit note">
+          <NoteForm
+            initial={editing}
+            onCancel={() => setEditingId(null)}
+            onSubmit={async (payload) => {
+              await updateNote(editing.id, payload);
+              setEditingId(null);
+            }}
+            submitLabel="Save changes"
+          />
+        </Dialog>
       ) : null}
 
       {loading ? (
         <p className="mt-8 text-sm text-ink-soft" role="status">
           Loading notes…
         </p>
-      ) : notes.length === 0 && !creating ? (
+      ) : notes.length === 0 ? (
         <div className="mt-8">
           <EmptyCta
             description="Keep an idea without forcing it into a project."
@@ -89,30 +105,17 @@ export function NotesPage() {
             {notes.length} {notes.length === 1 ? "note" : "notes"}
           </p>
           <div className="grid items-start gap-4 md:grid-cols-2">
-            {notes.map((note) =>
-              editingId === note.id ? (
-                <NoteForm
-                  initial={note}
-                  key={note.id}
-                  onCancel={() => setEditingId(null)}
-                  onSubmit={async (payload) => {
-                    await updateNote(note.id, payload);
-                    setEditingId(null);
-                  }}
-                  submitLabel="Save changes"
-                />
-              ) : (
-                <NoteCard
-                  key={note.id}
-                  note={note}
-                  onDelete={() => deleteNote(note.id)}
-                  onEdit={() => {
-                    setCreating(false);
-                    setEditingId(note.id);
-                  }}
-                />
-              ),
-            )}
+            {notes.map((note) => (
+              <NoteCard
+                key={note.id}
+                note={note}
+                onDelete={() => deleteNote(note.id)}
+                onEdit={() => {
+                  setCreating(false);
+                  setEditingId(note.id);
+                }}
+              />
+            ))}
           </div>
         </div>
       )}

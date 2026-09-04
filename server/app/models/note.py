@@ -19,6 +19,7 @@ class Note(Base):
     markdown: Mapped[str] = mapped_column(Text, default="")
     task_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("tasks.id", ondelete="SET NULL"),
+        index=True,
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

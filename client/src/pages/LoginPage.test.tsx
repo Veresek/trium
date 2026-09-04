@@ -100,7 +100,7 @@ describe("LoginPage", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: /Good (morning|afternoon|evening)\./,
+        name: /Good (morning|afternoon|evening|night)\./,
       }),
     ).toBeInTheDocument();
   });

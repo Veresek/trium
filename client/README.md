@@ -1,8 +1,8 @@
 # Trium client
 
 Responsive React SPA built with Vite, TypeScript, React Router, and Tailwind CSS.
-Authentication, account deletion, Tasks, and Home’s today list are live.
-Calendar and Notes are still intentional placeholders.
+Authentication, account deletion, Tasks, Calendar, Notes, and Home’s day review
+are live.
 
 ```bash
 npm ci

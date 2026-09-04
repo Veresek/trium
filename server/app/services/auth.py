@@ -11,7 +11,12 @@ from sqlalchemy.orm import Session
 from app.config import Settings
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
-from app.services.passwords import hash_password, password_problem, verify_password
+from app.services.passwords import (
+    DUMMY_PASSWORD_HASH,
+    hash_password,
+    password_problem,
+    verify_password,
+)
 from app.services.tokens import (
     ACCESS_COOKIE,
     REFRESH_COOKIE,
@@ -193,7 +198,8 @@ def login(
 ) -> tuple[User, SessionTokens]:
     email = normalize_email(email)
     user = db.scalar(select(User).where(User.email == email))
-    if user is None or not verify_password(password, user.password_hash):
+    password_hash = user.password_hash if user is not None else DUMMY_PASSWORD_HASH
+    if user is None or not verify_password(password, password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=INVALID_CREDENTIALS,
@@ -220,9 +226,9 @@ def refresh(
         )
 
     row = db.scalar(
-        select(RefreshToken).where(
-            RefreshToken.token_hash == hash_refresh_token(raw_refresh)
-        )
+        select(RefreshToken)
+        .where(RefreshToken.token_hash == hash_refresh_token(raw_refresh))
+        .with_for_update()
     )
     if row is None:
         raise HTTPException(

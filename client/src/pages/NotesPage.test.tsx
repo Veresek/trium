@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { jsonResponse, stubApi } from "../test/api";
+import { jsonResponse, stubSignedIn } from "../test/api";
+import { renderPage } from "../test/render";
 import type { Note } from "../types";
 import { NotesPage } from "./NotesPage";
 
@@ -15,18 +16,18 @@ const note: Note = {
 
 describe("NotesPage", () => {
   it("shows a loading state while notes are pending", () => {
-    stubApi({
+    stubSignedIn({
       "GET /notes": () => new Promise<Response>(() => undefined),
     });
 
-    render(<NotesPage />);
+    renderPage(<NotesPage />);
 
     expect(screen.getByRole("status")).toHaveTextContent("Loading notes");
   });
 
   it("shows an error and retries into the empty state", async () => {
     let attempts = 0;
-    stubApi({
+    stubSignedIn({
       "GET /notes": () => {
         attempts += 1;
         return attempts === 1
@@ -34,7 +35,7 @@ describe("NotesPage", () => {
           : jsonResponse([]);
       },
     });
-    render(<NotesPage />);
+    renderPage(<NotesPage />);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Notes are unavailable.",
@@ -49,7 +50,7 @@ describe("NotesPage", () => {
 
   it("creates a note from the empty-state action", async () => {
     let submitted: Record<string, unknown> | undefined;
-    stubApi({
+    stubSignedIn({
       "GET /notes": () => jsonResponse([]),
       "POST /notes": (init) => {
         submitted = JSON.parse(String(init?.body)) as Record<string, unknown>;
@@ -63,11 +64,12 @@ describe("NotesPage", () => {
         );
       },
     });
-    render(<NotesPage />);
+    renderPage(<NotesPage />);
 
     fireEvent.click(
       await screen.findByRole("button", { name: /Add your first note/ }),
     );
+    expect(screen.getByRole("dialog", { name: "Add note" })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Title"), {
       target: { value: "Reading list" },
     });
@@ -77,15 +79,33 @@ describe("NotesPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create note" }));
 
     expect(await screen.findByText("Reading list")).toBeInTheDocument();
+    expect(screen.getByText("The Dispossessed")).toBeInTheDocument();
+    expect(screen.getByText("Parable of the Sower")).toBeInTheDocument();
+    expect(screen.queryByText(/^- The Dispossessed/)).not.toBeInTheDocument();
     expect(submitted).toEqual({
       title: "Reading list",
       markdown: "- The Dispossessed\n- Parable of the Sower",
     });
   });
 
+  it("renders stored markdown instead of raw syntax", async () => {
+    stubSignedIn({
+      "GET /notes": () => jsonResponse([note]),
+    });
+    renderPage(<NotesPage />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Decisions" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Keep the first version small."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("# Decisions")).not.toBeInTheDocument();
+  });
+
   it("edits and deletes an existing note", async () => {
     let patchBody: Record<string, unknown> | undefined;
-    stubApi({
+    stubSignedIn({
       "GET /notes": () => jsonResponse([note]),
       [`PATCH /notes/${note.id}`]: (init) => {
         patchBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
@@ -97,11 +117,13 @@ describe("NotesPage", () => {
       },
       [`DELETE /notes/${note.id}`]: () => new Response(null, { status: 204 }),
     });
-    render(<NotesPage />);
+    renderPage(<NotesPage />);
 
     fireEvent.click(
-      await screen.findByRole("button", { name: "Edit Launch notes" }),
+      await screen.findByRole("button", { name: "Actions for Launch notes" }),
     );
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    expect(screen.getByRole("dialog", { name: "Edit note" })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Title"), {
       target: { value: "Launch decisions" },
     });
@@ -117,8 +139,13 @@ describe("NotesPage", () => {
     });
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Delete Launch decisions" }),
+      screen.getByRole("button", { name: "Actions for Launch decisions" }),
     );
+    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    expect(
+      screen.getByRole("dialog", { name: "Delete Launch decisions?" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Delete note" }));
     await waitFor(() =>
       expect(screen.queryByText("Launch decisions")).not.toBeInTheDocument(),
     );

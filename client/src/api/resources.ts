@@ -1,4 +1,5 @@
 import type {
+  AppState,
   Note,
   NoteCreate,
   NoteUpdate,
@@ -42,12 +43,26 @@ export const tasksApi = {
     return apiRequest<Task[]>(`/tasks${query}`);
   },
 };
-export const blocksApi = collectionApi<
+const blockCollection = collectionApi<
   TimeBlock,
   TimeBlockCreate,
   TimeBlockUpdate
 >("/blocks");
+
+export const blocksApi = {
+  ...blockCollection,
+  list: (filter?: { date?: string }) => {
+    const query = filter?.date
+      ? `?${new URLSearchParams({ date: filter.date })}`
+      : "";
+    return apiRequest<TimeBlock[]>(`/blocks${query}`);
+  },
+};
 export const notesApi = collectionApi<Note, NoteCreate, NoteUpdate>("/notes");
+
+export const stateApi = {
+  get: () => apiRequest<AppState>("/state"),
+};
 
 export const userApi = {
   me: () => apiRequest<User>("/users/me"),

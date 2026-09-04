@@ -20,6 +20,7 @@
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^10.9.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "globals": "^17.11.0",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4.3.3",
@@ -31,6 +32,12 @@
   "dependencies": {
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.18.3"
+  },
+  "overrides": {
+    "eslint-plugin-jsx-a11y": {
+      "eslint": "$eslint"
+    }
   }
 }

@@ -9,7 +9,6 @@ interface TaskFormProps {
     date: string | null;
   };
   defaultDate?: string;
-  showDetails?: boolean;
   submitLabel: string;
   onSubmit: (payload: TaskCreate) => Promise<unknown>;
   onCancel?: () => void;
@@ -18,7 +17,6 @@ interface TaskFormProps {
 export function TaskForm({
   initial,
   defaultDate,
-  showDetails = true,
   submitLabel,
   onSubmit,
   onCancel,
@@ -56,15 +54,11 @@ export function TaskForm({
   }
 
   return (
-    <form
-      className="rounded-lg border border-line bg-paper-raised p-4"
-      onSubmit={handleSubmit}
-    >
+    <form onSubmit={handleSubmit}>
       <label className="block text-sm font-medium text-ink" htmlFor="task-title">
         Title
       </label>
       <input
-        autoFocus
         className="mt-1 w-full rounded-md border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-lichen"
         id="task-title"
         maxLength={255}
@@ -74,41 +68,39 @@ export function TaskForm({
         value={title}
       />
 
-      {showDetails ? (
-        <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1fr)_11rem]">
-          <div>
-            <label
-              className="block text-sm font-medium text-ink"
-              htmlFor="task-description"
-            >
-              Description
-            </label>
-            <textarea
-              className="mt-1 min-h-24 w-full resize-y rounded-md border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-lichen"
-              id="task-description"
-              maxLength={10000}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Add useful context."
-              value={description}
-            />
-          </div>
-          <div>
-            <label
-              className="block text-sm font-medium text-ink"
-              htmlFor="task-date"
-            >
-              Date
-            </label>
-            <input
-              className="mt-1 w-full rounded-md border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-lichen"
-              id="task-date"
-              onChange={(event) => setDate(event.target.value)}
-              type="date"
-              value={date}
-            />
-          </div>
+      <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1fr)_11rem]">
+        <div>
+          <label
+            className="block text-sm font-medium text-ink"
+            htmlFor="task-description"
+          >
+            Description
+          </label>
+          <textarea
+            className="mt-1 min-h-24 w-full resize-y rounded-md border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-lichen"
+            id="task-description"
+            maxLength={10000}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="Add useful context. Markdown is welcome."
+            value={description}
+          />
         </div>
-      ) : null}
+        <div>
+          <label
+            className="block text-sm font-medium text-ink"
+            htmlFor="task-date"
+          >
+            Date
+          </label>
+          <input
+            className="mt-1 w-full rounded-md border border-line bg-paper px-3 py-2 text-sm text-ink focus:border-lichen"
+            id="task-date"
+            onChange={(event) => setDate(event.target.value)}
+            type="date"
+            value={date}
+          />
+        </div>
+      </div>
 
       <div className="mt-4 flex justify-end gap-2">
         {onCancel ? (

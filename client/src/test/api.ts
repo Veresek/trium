@@ -18,6 +18,12 @@ export function jsonResponse(body: unknown, status = 200): Response {
 
 type Handler = (init?: RequestInit) => Response | Promise<Response>;
 
+export const emptyAppState = {
+  tasks: { count: 0, updatedAt: null },
+  notes: { count: 0, updatedAt: null },
+  blocks: { count: 0, updatedAt: null },
+};
+
 export function stubApi(
   handlers: Record<string, Handler> = {},
   options: { user?: User | null } = {},
@@ -55,11 +61,26 @@ export function stubApi(
         return jsonResponse([]);
       }
 
+      if (
+        method === "GET" &&
+        (path === "/blocks" || path.startsWith("/blocks?"))
+      ) {
+        return jsonResponse([]);
+      }
+
       if (path === "/notes" && method === "GET") {
         return jsonResponse([]);
+      }
+
+      if (path === "/state" && method === "GET") {
+        return jsonResponse(emptyAppState);
       }
 
       throw new Error(`Unhandled fetch: ${key}`);
     }),
   );
+}
+
+export function stubSignedIn(handlers: Record<string, Handler> = {}) {
+  stubApi(handlers, { user: ada });
 }

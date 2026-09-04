@@ -1,23 +1,28 @@
 import uuid
 from datetime import datetime
 
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import Field, field_validator
 
-from app.schemas.base import ApiModel
+from app.schemas.base import (
+    TITLE_MAX_LENGTH,
+    ApiModel,
+    ApiReadModel,
+    normalize_optional_title,
+    normalize_required_title,
+)
+
+MARKDOWN_MAX_LENGTH = 100_000
 
 
 class NoteCreate(ApiModel):
-    title: str = Field(min_length=1, max_length=255)
-    markdown: str = Field(default="", max_length=100_000)
+    title: str = Field(min_length=1, max_length=TITLE_MAX_LENGTH)
+    markdown: str = Field(default="", max_length=MARKDOWN_MAX_LENGTH)
     task_id: uuid.UUID | None = None
 
     @field_validator("title")
     @classmethod
     def normalize_title(cls, value: str) -> str:
-        title = value.strip()
-        if not title:
-            raise ValueError("Title cannot be empty.")
-        return title
+        return normalize_required_title(value)
 
 
 class NoteUpdate(ApiModel):
@@ -28,27 +33,23 @@ class NoteUpdate(ApiModel):
     @field_validator("title")
     @classmethod
     def normalize_title(cls, value: str | None) -> str:
-        if value is None:
-            raise ValueError("Title cannot be null.")
-        title = value.strip()
-        if not title:
-            raise ValueError("Title cannot be empty.")
-        if len(title) > 255:
-            raise ValueError("Title cannot exceed 255 characters.")
-        return title
+        return normalize_optional_title(value)
 
     @field_validator("markdown")
     @classmethod
     def validate_markdown(cls, value: str | None) -> str:
         if value is None:
             raise ValueError("Markdown cannot be null.")
-        if len(value) > 100_000:
-            raise ValueError("Markdown cannot exceed 100000 characters.")
+        if len(value) > MARKDOWN_MAX_LENGTH:
+            raise ValueError(
+                f"Markdown cannot exceed {MARKDOWN_MAX_LENGTH} characters."
+            )
         return value
 
 
-class NoteRead(NoteCreate):
-    model_config = ConfigDict(from_attributes=True)
-
+class NoteRead(ApiReadModel):
     id: uuid.UUID
+    title: str
+    markdown: str
+    task_id: uuid.UUID | None
     updated_at: datetime

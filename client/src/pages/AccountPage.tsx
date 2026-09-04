@@ -6,6 +6,7 @@ import {
   authErrorClassName,
   buttonClassName,
 } from "../components/AuthCard";
+import { ConfirmDelete } from "../components/ConfirmDelete";
 
 export function AccountPage() {
   const { user, logout, deleteAccount } = useAuth();
@@ -75,57 +76,34 @@ export function AccountPage() {
           Permanently delete your account, all of its data, and every active
           session. This cannot be undone.
         </p>
+        <button
+          className="mt-5 rounded-md border border-rust/40 px-4 py-2 text-sm text-rust hover:bg-paper-raised disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={pending}
+          onClick={() => {
+            setConfirmingDelete(true);
+            setError(null);
+          }}
+          type="button"
+        >
+          Delete my account
+        </button>
         {confirmingDelete ? (
-          <div
-            aria-labelledby="delete-confirmation-title"
-            className="mt-5 rounded-md border border-rust/40 bg-paper-raised p-4"
-            role="group"
-          >
-            <h3 className="text-sm font-medium text-ink" id="delete-confirmation-title">
-              Delete your account permanently?
-            </h3>
-            <p className="mt-1 text-sm leading-6 text-ink-soft">
-              Choose cancel to keep your account and all of its data.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <button
-                className="rounded-md bg-rust px-4 py-2 text-sm font-medium text-paper-raised disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={pending}
-                onClick={() => void handleDelete()}
-                type="button"
-              >
-                {pendingAction === "delete"
-                  ? "Deleting account…"
-                  : "Yes, delete my account"}
-              </button>
-              <button
-                className="rounded-md border border-line px-4 py-2 text-sm text-ink hover:border-lichen disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={pending}
-                onClick={() => {
-                  setConfirmingDelete(false);
-                  setError(null);
-                }}
-                type="button"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            className="mt-5 rounded-md border border-rust/40 px-4 py-2 text-sm text-rust hover:bg-paper-raised disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={pending}
-            onClick={() => {
-              setConfirmingDelete(true);
+          <ConfirmDelete
+            confirmLabel="Yes, delete my account"
+            description="Choose cancel to keep your account and all of its data."
+            error={error}
+            onCancel={() => {
+              setConfirmingDelete(false);
               setError(null);
             }}
-            type="button"
-          >
-            Delete my account
-          </button>
-        )}
+            onConfirm={() => void handleDelete()}
+            pending={pendingAction === "delete"}
+            pendingLabel="Deleting account…"
+            title="Delete your account permanently?"
+          />
+        ) : null}
       </section>
-      {error ? (
+      {error && !confirmingDelete ? (
         <p aria-live="assertive" className={authErrorClassName} role="alert">
           {error}
         </p>

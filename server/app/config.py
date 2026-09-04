@@ -1,8 +1,8 @@
 from functools import lru_cache
 from typing import Literal
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_SECRET_KEY = "change-me-before-deploying"
@@ -31,6 +31,15 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @field_validator("timezone")
+    @classmethod
+    def validate_timezone(cls, value: str) -> str:
+        try:
+            ZoneInfo(value)
+        except (ZoneInfoNotFoundError, KeyError) as exc:
+            raise ValueError(f"Unknown timezone: {value}") from exc
+        return value
 
     @model_validator(mode="after")
     def validate_production_security(self) -> "Settings":

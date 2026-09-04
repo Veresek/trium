@@ -6,9 +6,8 @@ Current product status:
 
 - Email/password auth, instance-code verification/reset, sessions, and account
   deletion are implemented.
-- Tasks are implemented end to end, including Home’s today list.
-- Calendar/time blocks and Notes remain explicit API scaffolds and UI
-  placeholders.
+- Tasks, calendar/time blocks (including recurrence), and notes are implemented
+  end to end, including Home’s today list, around-now preview, and recent notes.
 
 The stack is Vite + React + TypeScript in [`client/`](client/), FastAPI +
 SQLAlchemy + PostgreSQL in [`server/`](server/), and Alembic migrations.
@@ -45,8 +44,10 @@ Start PostgreSQL, then run the API from `server/`:
 
 ```bash
 python -m venv .venv
-.venv/Scripts/pip install -r requirements-dev.txt
-.venv/Scripts/python scripts/migrate.py
+.venv/bin/pip install -r requirements-dev.txt   # POSIX
+.venv/Scripts/pip install -r requirements-dev.txt  # Windows
+.venv/bin/python scripts/migrate.py
+.venv/bin/python -m pytest
 uvicorn app.main:app --reload
 ```
 

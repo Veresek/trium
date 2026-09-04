@@ -7,6 +7,7 @@ from app.deps import get_current_user
 from app.models.user import User
 from app.schemas.user import UserRead, UserUpdate
 from app.services.auth import clear_session_cookies
+from app.services.users import delete_me as delete_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -39,6 +40,5 @@ def delete_me(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> None:
-    db.delete(user)
-    db.commit()
+    delete_current_user(db, user)
     clear_session_cookies(response, settings)

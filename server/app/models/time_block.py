@@ -1,8 +1,20 @@
 import enum
 import uuid
-from datetime import date, time
+from datetime import date, datetime, time
 
-from sqlalchemy import JSON, Date, Enum, ForeignKey, String, Text, Time
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    JSON,
+    String,
+    Text,
+    Time,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -17,6 +29,10 @@ class Recurrence(str, enum.Enum):
 
 class TimeBlock(Base):
     __tablename__ = "time_blocks"
+    __table_args__ = (
+        CheckConstraint('"start" <> "end"', name="ck_time_blocks_start_neq_end"),
+        Index("ix_time_blocks_user_id_date", "user_id", "date"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -33,3 +49,8 @@ class TimeBlock(Base):
         default=Recurrence.NONE,
     )
     recurrence_days: Mapped[list[int]] = mapped_column(JSON, default=list)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )

@@ -157,5 +157,10 @@ def test_resource_requests_accept_camel_case(
 
     response = client.post(path, json=payload)
 
-    expected_status = 501 if path == "/api/blocks" else 404
+    expected_status = 201 if path == "/api/blocks" else 404
     assert response.status_code == expected_status
+    if path == "/api/blocks":
+        body = response.json()
+        assert body["title"] == "Deep work"
+        assert body["recurrence"] == "weekdays"
+        assert body["recurrenceDays"] == [0, 2, 4]

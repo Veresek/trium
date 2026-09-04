@@ -62,6 +62,11 @@ def test_production_accepts_explicit_security_configuration() -> None:
     assert settings.environment == "production"
 
 
+def test_unknown_timezone_is_rejected() -> None:
+    with pytest.raises(ValidationError, match="Unknown timezone"):
+        Settings(timezone="Not/AZone")
+
+
 def test_production_rejects_an_insecure_client_origin() -> None:
     with pytest.raises(
         ValidationError,

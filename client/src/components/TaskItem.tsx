@@ -1,10 +1,16 @@
+import { useState } from "react";
+
 import type { Task } from "../types";
+import { ConfirmDelete } from "./ConfirmDelete";
+import { ItemMenu } from "./ItemMenu";
+import { MarkdownBody } from "./MarkdownBody";
 
 interface TaskItemProps {
   task: Task;
   onToggle: () => Promise<unknown>;
   onEdit?: () => void;
   onDelete?: () => Promise<unknown>;
+  showDate?: boolean;
 }
 
 function displayDate(value: string) {
@@ -20,15 +26,43 @@ export function TaskItem({
   onToggle,
   onEdit,
   onDelete,
+  showDate = true,
 }: TaskItemProps) {
+  const [confirming, setConfirming] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  async function handleToggle() {
+    setPending(true);
+    try {
+      await onToggle();
+    } catch {
+      // The page banner shows the API error.
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!onDelete) {
+      return;
+    }
+    setPending(true);
+    try {
+      await onDelete();
+    } catch {
+      setPending(false);
+    }
+  }
+
   return (
     <article className="rounded-lg border border-line bg-paper-raised p-4">
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3">
         <input
           aria-label={`Mark ${task.title} as ${task.done ? "not done" : "done"}`}
           checked={task.done}
-          className="mt-1 size-4 accent-moss"
-          onChange={() => void onToggle().catch(() => undefined)}
+          className="size-4 shrink-0 accent-moss"
+          disabled={pending}
+          onChange={() => void handleToggle()}
           type="checkbox"
         />
         <div className="min-w-0 flex-1">
@@ -41,39 +75,39 @@ export function TaskItem({
             {task.title}
           </h3>
           {task.description ? (
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-ink-soft">
-              {task.description}
+            <MarkdownBody
+              className={
+                showDate
+                  ? "mt-1 wrap-break-word text-sm leading-6 text-ink-soft"
+                  : "mt-0.5 wrap-break-word text-xs text-ink-faint"
+              }
+              compact={!showDate}
+              markdown={task.description}
+            />
+          ) : null}
+          {showDate ? (
+            <p className="mt-2 text-xs text-ink-faint">
+              {task.date ? displayDate(task.date) : "No date"}
             </p>
           ) : null}
-          <p className="mt-2 text-xs text-ink-faint">
-            {task.date ? displayDate(task.date) : "No date"}
-          </p>
         </div>
-        {onEdit || onDelete ? (
-          <div className="flex shrink-0 gap-2">
-            {onEdit ? (
-              <button
-                aria-label={`Edit ${task.title}`}
-                className="rounded-md border border-line px-2.5 py-1.5 text-xs text-ink-soft hover:bg-paper"
-                onClick={onEdit}
-                type="button"
-              >
-                Edit
-              </button>
-            ) : null}
-            {onDelete ? (
-              <button
-                aria-label={`Delete ${task.title}`}
-                className="rounded-md border border-line px-2.5 py-1.5 text-xs text-rust hover:bg-paper"
-                onClick={() => void onDelete().catch(() => undefined)}
-                type="button"
-              >
-                Delete
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+        <ItemMenu
+          disabled={pending}
+          label={`Actions for ${task.title}`}
+          onDelete={onDelete ? () => setConfirming(true) : undefined}
+          onEdit={onEdit}
+        />
       </div>
+      {confirming && onDelete ? (
+        <ConfirmDelete
+          confirmLabel="Delete task"
+          description="This cannot be undone."
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => void handleDelete()}
+          pending={pending}
+          title={`Delete ${task.title}?`}
+        />
+      ) : null}
     </article>
   );
 }

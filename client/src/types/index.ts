@@ -67,3 +67,14 @@ export interface NoteCreate {
 }
 
 export type NoteUpdate = Partial<NoteCreate>;
+
+export interface CollectionFingerprint {
+  count: number;
+  updatedAt: string | null;
+}
+
+export interface AppState {
+  tasks: CollectionFingerprint;
+  notes: CollectionFingerprint;
+  blocks: CollectionFingerprint;
+}

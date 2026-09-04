@@ -1,4 +1,9 @@
+import { useState } from "react";
+
 import type { Note } from "../types";
+import { ConfirmDelete } from "./ConfirmDelete";
+import { ItemMenu } from "./ItemMenu";
+import { MarkdownBody } from "./MarkdownBody";
 
 interface NoteCardProps {
   note: Note;
@@ -21,44 +26,44 @@ export function NoteCard({
   onEdit,
   onDelete,
 }: NoteCardProps) {
+  const [confirming, setConfirming] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  async function handleDelete() {
+    if (!onDelete) {
+      return;
+    }
+    setPending(true);
+    try {
+      await onDelete();
+    } catch {
+      setPending(false);
+    }
+  }
+
   return (
     <article className="rounded-lg border border-line bg-paper-raised p-4">
       <div className="flex items-start justify-between gap-3">
         <h3 className="min-w-0 font-serif text-xl text-ink">{note.title}</h3>
-        {onEdit || onDelete ? (
-          <div className="flex shrink-0 gap-2">
-            {onEdit ? (
-              <button
-                aria-label={`Edit ${note.title}`}
-                className="rounded-md border border-line px-2.5 py-1.5 text-xs text-ink-soft hover:bg-paper"
-                onClick={onEdit}
-                type="button"
-              >
-                Edit
-              </button>
-            ) : null}
-            {onDelete ? (
-              <button
-                aria-label={`Delete ${note.title}`}
-                className="rounded-md border border-line px-2.5 py-1.5 text-xs text-rust hover:bg-paper"
-                onClick={() => void onDelete().catch(() => undefined)}
-                type="button"
-              >
-                Delete
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+        <ItemMenu
+          disabled={pending}
+          label={`Actions for ${note.title}`}
+          onDelete={onDelete ? () => setConfirming(true) : undefined}
+          onEdit={onEdit}
+        />
       </div>
+      {confirming && onDelete ? (
+        <ConfirmDelete
+          confirmLabel="Delete note"
+          description="This cannot be undone."
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => void handleDelete()}
+          pending={pending}
+          title={`Delete ${note.title}?`}
+        />
+      ) : null}
       {note.markdown ? (
-        <p
-          className={[
-            "mt-3 whitespace-pre-wrap wrap-break-word text-sm leading-6 text-ink-soft",
-            compact ? "line-clamp-6" : "",
-          ].join(" ")}
-        >
-          {note.markdown}
-        </p>
+        <MarkdownBody compact={compact} markdown={note.markdown} />
       ) : (
         <p className="mt-3 text-sm italic text-ink-faint">Empty note</p>
       )}

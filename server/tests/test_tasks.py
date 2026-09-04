@@ -170,3 +170,26 @@ def test_tasks_are_isolated_between_users(client: TestClient) -> None:
         adas_task["id"]
     ]
     assert client.get(f"/api/tasks/{uuid.uuid4()}").status_code == 404
+
+
+def test_cannot_pin_a_task_to_another_users_block(client: TestClient) -> None:
+    register_verified(client, "ada@example.com")
+    ada_block = client.post(
+        "/api/blocks",
+        json={
+            "title": "Ada’s block",
+            "date": "2026-08-31",
+            "start": "09:00:00",
+            "end": "10:00:00",
+        },
+    )
+    assert ada_block.status_code == 201
+
+    register_verified(client, "grace@example.com")
+    response = client.post(
+        "/api/tasks",
+        json={"title": "Stolen pin", "timeBlockId": ada_block.json()["id"]},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Time block not found."

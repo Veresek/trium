@@ -38,7 +38,7 @@ Five panels (sidebar on desktop, bottom tabs on mobile):
 | Panel | What is there |
 |-------|----------------|
 | **Home** | Morning review: today's tasks, nearby-block preview, recent notes |
-| **Calendar** | Full 24 h grid |
+| **Calendar** | Week of 24 h columns |
 | **Tasks** | All tasks, including undated |
 | **Notes** | Loose cards (Keep-style) |
 | **Account** | Account, verify / reset via instance code, delete |
@@ -51,7 +51,7 @@ An AI bar sits at the top of every screen — **visible, disabled** — so the s
 
 **Mobile:** panels at the bottom; AI bar at the top (disabled); block preview under it; today's tasks below that; recent notes further down.
 
-The calendar preview is a **window around now** (about 1 h back and 3 h forward), not the full grid. The full grid lives in Calendar.
+The calendar preview is a **window around now** (about 1 h back and 3 h forward), not the full grid. The week grid lives in Calendar.
 
 Empty state: where tasks would be, a button in the app colors (dashed border, plus in the center) to add the first task; on the preview / grid — empty hours, no fake events; notes get a similar CTA or sit empty.
 

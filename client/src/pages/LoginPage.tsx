@@ -61,8 +61,10 @@ export function LoginPage() {
         <label className="block text-sm text-ink">
           Email
           <input
-            className={fieldClassName}
+            aria-describedby={error ? "login-error" : undefined}
+            aria-invalid={error !== null}
             autoComplete="email"
+            className={fieldClassName}
             name="email"
             placeholder="you@example.com"
             required
@@ -72,8 +74,10 @@ export function LoginPage() {
         <label className="mt-4 block text-sm text-ink">
           Password
           <input
-            className={fieldClassName}
+            aria-describedby={error ? "login-error" : undefined}
+            aria-invalid={error !== null}
             autoComplete="current-password"
+            className={fieldClassName}
             name="password"
             placeholder="Your password"
             required
@@ -87,6 +91,7 @@ export function LoginPage() {
           <p
             aria-live="assertive"
             className={authErrorClassName}
+            id="login-error"
             role="alert"
           >
             {error}

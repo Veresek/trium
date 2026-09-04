@@ -61,4 +61,16 @@ describe("apiRequest", () => {
       message: "That password does not meet the requirements.",
     });
   });
+
+  it("turns a network failure into an ApiError", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockRejectedValue(new TypeError("Failed to fetch")),
+    );
+
+    await expect(apiRequest("/tasks")).rejects.toMatchObject({
+      message: "The network is unavailable. Check your connection.",
+      status: 0,
+    });
+  });
 });

@@ -48,3 +48,10 @@ def test_password_checks_are_independent() -> None:
         "letter": True,
         "number": False,
     }
+
+
+def test_password_checks_reject_more_than_72_bytes() -> None:
+    assert password_checks("1" + "a" * 71)["length"] is True
+    assert password_checks("1" + "a" * 72)["length"] is False
+    assert password_checks("é" * 40)["length"] is False
+    assert password_problem("1" + "a" * 72) == PASSWORD_HINT

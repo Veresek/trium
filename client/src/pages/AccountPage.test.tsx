@@ -17,7 +17,7 @@ describe("AccountPage", () => {
 
     await openDeleteConfirmation();
     expect(
-      screen.getByRole("heading", {
+      screen.getByRole("dialog", {
         name: "Delete your account permanently?",
       }),
     ).toBeInTheDocument();

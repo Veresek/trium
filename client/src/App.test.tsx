@@ -21,11 +21,11 @@ describe("App routes", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: /Good (morning|afternoon|evening)\./,
+        name: /Good (morning|afternoon|evening|night)\./,
       }),
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Around now" })).toBeInTheDocument();
-    expect(screen.getByText("- 1h")).toBeInTheDocument();
+    expect(screen.queryByText("- 1h")).not.toBeInTheDocument();
     expect(screen.queryByText("Now − 1h")).not.toBeInTheDocument();
     expect(
       screen.getByRole("navigation", { name: "Primary navigation" }),
@@ -109,5 +109,15 @@ describe("App routes", () => {
     expect(
       screen.getByRole("heading", { name: "Account" }),
     ).toBeInTheDocument();
+  });
+
+  it("renders calendar", async () => {
+    stubApi({}, { user: ada });
+    renderWithRouter(<App />, { route: "/calendar" });
+
+    expect(
+      await screen.findByRole("heading", { name: "Calendar" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add block" })).toBeInTheDocument();
   });
 });

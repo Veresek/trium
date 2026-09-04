@@ -50,6 +50,7 @@ def refresh(
     response: Response,
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
+    _rate_limit: None = Depends(enforce_auth_rate_limit),
 ) -> None:
     tokens = auth_service.refresh(
         db,

@@ -2,14 +2,23 @@ import uuid
 from datetime import date as DateType
 from datetime import datetime
 
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import Field, field_validator
 
-from app.schemas.base import ApiModel
+from app.schemas.base import (
+    DESCRIPTION_MAX_LENGTH,
+    TITLE_MAX_LENGTH,
+    ApiModel,
+    ApiReadModel,
+    normalize_description,
+    normalize_optional_description,
+    normalize_optional_title,
+    normalize_required_title,
+)
 
 
 class TaskCreate(ApiModel):
-    title: str = Field(min_length=1, max_length=255)
-    description: str = Field(default="", max_length=10_000)
+    title: str = Field(min_length=1, max_length=TITLE_MAX_LENGTH)
+    description: str = Field(default="", max_length=DESCRIPTION_MAX_LENGTH)
     done: bool = False
     date: DateType | None = None
     time_block_id: uuid.UUID | None = None
@@ -18,15 +27,12 @@ class TaskCreate(ApiModel):
     @field_validator("title")
     @classmethod
     def normalize_title(cls, value: str) -> str:
-        title = value.strip()
-        if not title:
-            raise ValueError("Title cannot be empty.")
-        return title
+        return normalize_required_title(value)
 
     @field_validator("description")
     @classmethod
-    def normalize_description(cls, value: str) -> str:
-        return value.strip()
+    def normalize_description_field(cls, value: str) -> str:
+        return normalize_description(value)
 
 
 class TaskUpdate(ApiModel):
@@ -40,24 +46,12 @@ class TaskUpdate(ApiModel):
     @field_validator("title")
     @classmethod
     def normalize_title(cls, value: str | None) -> str:
-        if value is None:
-            raise ValueError("Title cannot be null.")
-        title = value.strip()
-        if not title:
-            raise ValueError("Title cannot be empty.")
-        if len(title) > 255:
-            raise ValueError("Title cannot exceed 255 characters.")
-        return title
+        return normalize_optional_title(value)
 
     @field_validator("description")
     @classmethod
-    def normalize_description(cls, value: str | None) -> str:
-        if value is None:
-            raise ValueError("Description cannot be null.")
-        description = value.strip()
-        if len(description) > 10_000:
-            raise ValueError("Description cannot exceed 10000 characters.")
-        return description
+    def normalize_description_field(cls, value: str | None) -> str:
+        return normalize_optional_description(value)
 
     @field_validator("done")
     @classmethod
@@ -76,9 +70,12 @@ class TaskUpdate(ApiModel):
         return value
 
 
-class TaskRead(TaskCreate):
-    model_config = ConfigDict(from_attributes=True)
-
+class TaskRead(ApiReadModel):
     id: uuid.UUID
+    title: str
+    description: str
+    done: bool
+    date: DateType | None
+    time_block_id: uuid.UUID | None
     order: int = Field(validation_alias="sort_order")
     created_at: datetime

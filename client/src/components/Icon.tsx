@@ -1,7 +1,11 @@
 import account from "../assets/icons/account.svg?raw";
 import calendar from "../assets/icons/calendar.svg?raw";
+import chevronLeft from "../assets/icons/chevron-left.svg?raw";
+import chevronRight from "../assets/icons/chevron-right.svg?raw";
+import close from "../assets/icons/close.svg?raw";
 import home from "../assets/icons/home.svg?raw";
 import leaf from "../assets/icons/leaf.svg?raw";
+import more from "../assets/icons/more.svg?raw";
 import notes from "../assets/icons/notes.svg?raw";
 import plus from "../assets/icons/plus.svg?raw";
 import tasks from "../assets/icons/tasks.svg?raw";
@@ -9,8 +13,12 @@ import tasks from "../assets/icons/tasks.svg?raw";
 const icons = {
   account,
   calendar,
+  chevronLeft,
+  chevronRight,
+  close,
   home,
   leaf,
+  more,
   notes,
   plus,
   tasks,

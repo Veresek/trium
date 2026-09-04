@@ -71,6 +71,8 @@ export function RegisterPage() {
         <label className="block text-sm text-ink">
           Email
           <input
+            aria-describedby={error ? "register-error" : undefined}
+            aria-invalid={error !== null}
             autoComplete="email"
             className={fieldClassName}
             name="email"
@@ -82,7 +84,10 @@ export function RegisterPage() {
         <label className="mt-4 block text-sm text-ink">
           Password
           <input
-            aria-describedby="password-rules"
+            aria-describedby={
+              error ? "password-rules register-error" : "password-rules"
+            }
+            aria-invalid={error !== null}
             autoComplete="new-password"
             className={fieldClassName}
             name="password"
@@ -101,6 +106,7 @@ export function RegisterPage() {
           <p
             aria-live="assertive"
             className={authErrorClassName}
+            id="register-error"
             role="alert"
           >
             {error}
