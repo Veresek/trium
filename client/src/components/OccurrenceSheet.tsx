@@ -10,9 +10,6 @@ interface OccurrenceSheetProps {
   onClose: () => void;
   onOpenTask: (id: string) => void;
   onOpenNote: (id: string) => void;
-  onCreateTask: () => void;
-  onCreateNote: () => void;
-  onEditBlock?: () => void;
 }
 
 export function OccurrenceSheet({
@@ -21,9 +18,6 @@ export function OccurrenceSheet({
   onClose,
   onOpenTask,
   onOpenNote,
-  onCreateTask,
-  onCreateNote,
-  onEditBlock,
 }: OccurrenceSheetProps) {
   const { blocks, tasks, notes, updateTask, updateNote } = useData();
   const block = blocks.find((item) => item.id === blockId);
@@ -191,32 +185,6 @@ export function OccurrenceSheet({
           </div>
         </form>
       ) : null}
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          className="rounded-md bg-moss px-3 py-2 text-sm font-medium text-paper-raised hover:bg-moss-hover"
-          onClick={onCreateTask}
-          type="button"
-        >
-          New task
-        </button>
-        <button
-          className="rounded-md border border-line px-3 py-2 text-sm text-ink-soft hover:bg-paper"
-          onClick={onCreateNote}
-          type="button"
-        >
-          New note
-        </button>
-        {onEditBlock ? (
-          <button
-            className="rounded-md border border-line px-3 py-2 text-sm text-ink-soft hover:bg-paper"
-            onClick={onEditBlock}
-            type="button"
-          >
-            Edit event
-          </button>
-        ) : null}
-      </div>
     </Dialog>
   );
 }

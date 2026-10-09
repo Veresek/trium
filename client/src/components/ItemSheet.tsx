@@ -81,6 +81,65 @@ export function ItemSheet({
     }
   }
 
+  const noteHasChips =
+    !editing && Boolean(note && (note.date || relatedTask || block));
+  const taskHasChips =
+    !editing && Boolean(task && ((task.date && !block) || block));
+
+  const footer =
+    noteHasChips && note ? (
+      <div className="flex flex-wrap gap-1.5">
+        {note.date ? (
+          <PinChip
+            icon="calendar"
+            label={`Pinned to ${formatDateLabel(note.date)}`}
+          />
+        ) : null}
+        {relatedTask ? (
+          <PinChip
+            icon="tasks"
+            label={relatedTask.title}
+            onClick={onOpenTask ? () => onOpenTask(relatedTask.id) : undefined}
+          />
+        ) : null}
+        {block ? (
+          <PinChip
+            icon="notes"
+            label={`On ${block.title} ${recurrenceLabel(block)} · ${formatTimeLabel(block.start)}–${formatTimeLabel(block.end)}`}
+            onClick={
+              onOpenBlock
+                ? () =>
+                    onOpenBlock(
+                      block.id,
+                      nextOccurrenceOnOrAfter(block, today),
+                    )
+                : undefined
+            }
+          />
+        ) : null}
+      </div>
+    ) : taskHasChips && task ? (
+      <div className="flex flex-wrap gap-1.5">
+        {task.date && !block ? (
+          <PinChip
+            icon="calendar"
+            label={`Pinned to ${formatDateLabel(task.date)}`}
+          />
+        ) : null}
+        {block ? (
+          <PinChip
+            icon="calendar"
+            label={`Pinned to ${block.title} · ${formatTimeLabel(block.start)}–${formatTimeLabel(block.end)}`}
+            onClick={
+              onOpenBlock && task.date
+                ? () => onOpenBlock(block.id, task.date as string)
+                : undefined
+            }
+          />
+        ) : null}
+      </div>
+    ) : undefined;
+
   return (
     <Dialog
       action={
@@ -94,6 +153,7 @@ export function ItemSheet({
           </button>
         )
       }
+      footer={footer}
       onClose={onClose}
       title={title}
       wide={editing || kind === "note"}
@@ -144,68 +204,17 @@ export function ItemSheet({
           ) : (
             <p className="mt-3 text-sm italic text-ink-faint">No description</p>
           )}
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {task.date && !block ? (
-              <PinChip
-                icon="calendar"
-                label={`Pinned to ${formatDateLabel(task.date)}`}
-              />
-            ) : null}
-            {block ? (
-              <PinChip
-                icon="calendar"
-                label={`Pinned to ${block.title} · ${formatTimeLabel(block.start)}–${formatTimeLabel(block.end)}`}
-                onClick={
-                  onOpenBlock && task.date
-                    ? () => onOpenBlock(block.id, task.date as string)
-                    : undefined
-                }
-              />
-            ) : null}
-          </div>
         </div>
       ) : null}
       {!editing && note ? (
-        <div>
-          {note.markdown ? (
-            <MarkdownBody
-              className="wrap-break-word text-sm leading-6 text-ink-soft"
-              markdown={note.markdown}
-            />
-          ) : (
-            <p className="text-sm italic text-ink-faint">Empty note</p>
-          )}
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {note.date ? (
-              <PinChip
-                icon="calendar"
-                label={`Pinned to ${formatDateLabel(note.date)}`}
-              />
-            ) : null}
-            {relatedTask ? (
-              <PinChip
-                icon="tasks"
-                label={relatedTask.title}
-                onClick={onOpenTask ? () => onOpenTask(relatedTask.id) : undefined}
-              />
-            ) : null}
-            {block ? (
-              <PinChip
-                icon="notes"
-                label={`On ${block.title} ${recurrenceLabel(block)} · ${formatTimeLabel(block.start)}–${formatTimeLabel(block.end)}`}
-                onClick={
-                  onOpenBlock
-                    ? () =>
-                        onOpenBlock(
-                          block.id,
-                          nextOccurrenceOnOrAfter(block, today),
-                        )
-                    : undefined
-                }
-              />
-            ) : null}
-          </div>
-        </div>
+        note.markdown ? (
+          <MarkdownBody
+            className="wrap-break-word text-sm leading-6 text-ink-soft"
+            markdown={note.markdown}
+          />
+        ) : (
+          <p className="text-sm italic text-ink-faint">Empty note</p>
+        )
       ) : null}
     </Dialog>
   );

@@ -615,8 +615,11 @@ describe("CalendarPage", () => {
 
     const grid = await screen.findByRole("group", { name: /Week of/ });
     fireEvent.click(within(grid).getByRole("button", { name: "+1 more" }));
-    expect(screen.getByRole("dialog", { name: "Deep work" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "New task" })).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog", { name: "Deep work" });
+    expect(dialog).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("button", { name: "Session notes" }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("dialog", { name: "Edit event" }),
     ).not.toBeInTheDocument();

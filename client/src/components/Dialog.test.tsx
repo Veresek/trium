@@ -133,4 +133,21 @@ describe("Dialog", () => {
     rerender(<Harness open={false} />);
     expect(document.body.style.overflow).toBe("");
   });
+
+  it("renders a fixed footer when provided", () => {
+    render(
+      <Dialog
+        footer={<button type="button">Save</button>}
+        onClose={() => undefined}
+        title="Add task"
+      >
+        <p>Form fields</p>
+      </Dialog>,
+    );
+
+    expect(screen.getByRole("dialog", { name: "Add task" })).toBeInTheDocument();
+    expect(screen.getByText("Form fields")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+  });
 });
+

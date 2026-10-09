@@ -8,6 +8,7 @@ interface DialogProps {
   onClose: () => void;
   wide?: boolean;
   action?: ReactNode;
+  footer?: ReactNode;
   children: ReactNode;
 }
 
@@ -59,6 +60,7 @@ export function Dialog({
   onClose,
   wide = false,
   action,
+  footer,
   children,
 }: DialogProps) {
   const titleId = useId();
@@ -130,7 +132,7 @@ export function Dialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 flex items-start justify-center overflow-y-auto px-4 py-10 md:items-center"
+      className="fixed inset-0 flex items-center justify-center overflow-y-auto px-4 py-6 md:px-6 md:py-10"
       style={{ zIndex: 50 + layerRef.current * 10 }}
     >
       <button
@@ -144,14 +146,14 @@ export function Dialog({
         aria-labelledby={titleId}
         aria-modal="true"
         className={[
-          "relative z-10 mb-8 w-full animate-rise-in rounded-lg border border-line bg-paper-raised p-4 md:mb-0",
+          "relative z-10 my-auto flex w-full max-h-[calc(100dvh-3rem)] md:max-h-[calc(100dvh-5rem)] flex-col animate-rise-in rounded-lg border border-line bg-paper-raised p-4",
           wide ? "max-w-2xl" : "max-w-lg",
         ].join(" ")}
         ref={panelRef}
         role="dialog"
         tabIndex={-1}
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex shrink-0 items-start justify-between gap-4">
           <h2
             className="font-serif text-2xl text-ink"
             id={titleId}
@@ -172,7 +174,14 @@ export function Dialog({
             </button>
           </div>
         </div>
-        <div className="mt-4">{children}</div>
+        <div className="mt-4 min-h-0 min-w-0 flex-auto overflow-y-auto pr-1">
+          {children}
+        </div>
+        {footer ? (
+          <div className="mt-4 shrink-0 border-t border-line pt-3">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>,
     document.body,

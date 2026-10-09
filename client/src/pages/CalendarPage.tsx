@@ -73,12 +73,7 @@ export function CalendarPage() {
   const [creatingDate, setCreatingDate] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDate, setEditingDate] = useState<string | null>(null);
-  const pinOverlays = usePinOverlays({
-    onEditBlock: (id) => {
-      setCreatingDate(null);
-      setEditingId(id);
-    },
-  });
+  const pinOverlays = usePinOverlays();
   const editing = blocks.find((block) => block.id === editingId);
   const nowParts = timeParts(now, timeZone);
   const nowMinutes = nowParts.hour * 60 + nowParts.minute;

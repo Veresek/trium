@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { jsonResponse, stubSignedIn } from "../test/api";
 import { renderPage } from "../test/render";
-import type { Note, Task } from "../types";
+import type { Note, Task, TimeBlock } from "../types";
 import { ItemSheet } from "./ItemSheet";
 
 const task: Task = {
@@ -92,5 +92,47 @@ describe("ItemSheet", () => {
       screen.getByRole("checkbox", { name: "Mark Write the intro as done" }),
     );
     await waitFor(() => expect(patchBody).toEqual({ done: true }));
+  });
+
+  it("renders pin chips in the footer for a note pinned to a block and date", async () => {
+    const block: TimeBlock = {
+      id: "11111111-1111-1111-1111-111111111111",
+      title: "Deep work",
+      description: "",
+      date: "2026-09-15",
+      start: "09:00",
+      end: "11:00",
+      recurrence: "none",
+      recurrenceDays: [],
+      color: "#3e513c",
+    };
+    const pinnedNote: Note = {
+      ...note,
+      date: "2026-09-15",
+      timeBlockId: block.id,
+    };
+    stubSignedIn({
+      "GET /notes": () => jsonResponse([pinnedNote]),
+      "GET /blocks": () => jsonResponse([block]),
+    });
+
+    renderPage(
+      <ItemSheet
+        id={pinnedNote.id}
+        kind="note"
+        mode="read"
+        onClose={() => undefined}
+        onModeChange={() => undefined}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("dialog", { name: "Session notes" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("scope")).toHaveProperty("tagName", "STRONG");
+    expect(screen.getByText("Pinned to Sep 15, 2026")).toBeInTheDocument();
+    expect(
+      screen.getByText(/On Deep work/),
+    ).toBeInTheDocument();
   });
 });
